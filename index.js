@@ -13,6 +13,9 @@ var snow_level_inc = 1.5;
 var ctx = null;
 const fps = 60;
 
+const DEBUG = true;
+var DEBUG_COLORS = ['green', 'red', 'orange', 'cyan', 'yellow', 'blue'];
+
 function run() {
     ctx = document.getElementById('scene').getContext('2d');
     snowflakes = [];
@@ -162,17 +165,23 @@ function draw_scene() {
     translate(canvas_width/2, canvas_height/2)
     scale(1, -1);
 
-    draw_axes();
+    if (DEBUG) {
+        draw_axes();
+    }
+
+    draw_context(() => {
+        translate(-canvas_width/4, -canvas_height/2);
+        draw_snowman();
+    });
+    draw_context(() => {
+        translate(canvas_width*0.35, -canvas_height/2);
+        draw_tree();
+    });
     draw_ground();
-    draw_snowman();
+    
     for (const snowflake of snowflakes) {
         snowflake.draw();
     }
-
-    // draw_context(() => {
-    //     scale(2,2);
-    //     triangle('orange');
-    // });
 
     ctx.restore(loc_start);
 }
@@ -293,8 +302,78 @@ function draw_snowman() {
             ctx.stroke();    
         });
     }
-
     draw_face();
+
+    // hat
+    draw_context(() => {
+        translate(0, 3.78*size);
+        draw_context(() => {
+            scale(30, 32);
+            translate(0, 0.5);
+            square('black');
+        });
+        draw_context(() => {
+            scale(50, 10);
+            translate(0, 0.5);
+            square('black');
+        });
+    });
+
+    // scarf
+    draw_context(() => {
+        // scale(5, 5);
+        translate(0, 2.75*size);
+        rotate(-33);
+        scale(0.9, 0.9);
+        // short part
+        draw_context(() => {
+            rotate(69);
+            translate(11, 0);
+            scale(26, 10);
+            square('red');            
+        });
+        draw_context(() => {
+            rotate(-4);
+            // long part
+            draw_context(() => {
+                scale(50, 10);
+                square('red');
+            });
+            // tassel 1
+            draw_context(() => {
+                translate(25+5, 0);
+                scale(10, 2);
+                square('red');
+            });
+            // tassel 2
+            draw_context(() => {
+                translate(25+5, 4);
+                scale(10, 2);
+                square('red');
+            });
+            // tassel 3
+            draw_context(() => {
+                translate(25+5, -4);
+                scale(10, 2);
+                square('red');
+            });
+        });
+    });
+}
+
+function draw_tree() {
+    draw_context(() => {
+        scale(1.2,1.2);
+        scale(0.8,1.2);
+        for (var i = 0; i < 8; i++) {
+            var color = 'green';
+            draw_context(() => {
+                translate(0.0, i*0.2*150);
+                scale(1.5, 1.0);
+                triangle(color, 150*(1-0.1*i));
+            });
+        }
+    });
 }
 
 function draw_snowflake() {
@@ -330,7 +409,7 @@ function draw_snowflake() {
         // Second leaf
         var loc = ctx.save();
         translate(65, 0);
-        rotate(40);
+         rotate(40);
         translate(20, 0);
         scale(40, width-2);
         square(color);
@@ -375,6 +454,4 @@ function draw_snowflake() {
     scale(28, 28);
     square(color);
     ctx.restore(loc);
-
-    //ctx.restore(loc_top);
 }
