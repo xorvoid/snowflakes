@@ -14,7 +14,7 @@ var snow_level_limit = 150;
 var ctx = null;
 const fps = 60;
 
-const DEBUG = 0;
+const DEBUG = 1;
 var DEBUG_COLORS = ['green', 'red', 'orange', 'cyan', 'yellow', 'blue'];
 
 function run() {
@@ -141,6 +141,30 @@ function triangle(color, scale) {
     ctx.closePath();
     ctx.fill();
     ctx.stroke();    
+}
+
+function star(color, scale) {
+    function triangle_point() {
+        ctx.beginPath();
+        ctx.fillStyle = color;
+        ctx.strokeStyle = color;
+        ctx.moveTo(-1.0*scale, 0.0);
+        ctx.lineTo(1.0*scale, 0.0);
+        ctx.lineTo(0.0, scale*3.0776835371752536);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+    }
+    rotate(72);
+    triangle_point();
+    rotate(72);
+    triangle_point();
+    rotate(72);
+    triangle_point();
+    rotate(72);
+    triangle_point();
+    rotate(72);
+    triangle_point();
 }
 
 function draw_axes() {
@@ -379,6 +403,12 @@ function draw_tree() {
             });
         }
     });
+
+    draw_context(() => {
+        translate(0, 365);
+        star('orange', 10);
+    });
+
 }
 
 function draw_snowflake() {
