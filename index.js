@@ -3,18 +3,16 @@ var canvas_height = 700;
 var snowflake_start = canvas_height/2+10;
 var snowflake_end = -canvas_height/2-10;
 var background_color = '#06224a';
-//var snowflake_color = ' #7da2ba ';
-//var snowflake_color = ' #ebf1f8 ';
 var snowflake_color = ' #d9e5f5 ';
 var snowflakes_per_second = 3.0;
 var snowflakes = [];
 var snow_level = 10;
-var snow_level_inc = 1.5;
+var snow_level_inc = 2.5;
 var snow_level_limit = 150;
 var ctx = null;
 const fps = 60;
 
-const DEBUG = 1;
+const DEBUG = 0;
 var DEBUG_COLORS = ['green', 'red', 'orange', 'cyan', 'yellow', 'blue'];
 
 function run() {
@@ -211,8 +209,12 @@ function draw_scene() {
     for (const snowflake of snowflakes) {
         snowflake.draw();
     }
-
+    
     ctx.restore(loc_start);
+
+    ctx.font = "78px Snell Roundhand";
+    ctx.strokeStyle = '#baedf8';
+    ctx.strokeText("Happy Holidays!", 100, 130);
 }
 
 function draw_ground() {
