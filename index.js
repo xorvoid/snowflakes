@@ -21,15 +21,18 @@ function render_frame() {
 }
 
 class Snowflake {
-    constructor(sz, pos, vel) {
+    constructor(sz, pos, vel, ang, ang_vel) {
         this.sz = sz;
         this.pos = pos;
+        this.ang = ang;  // degrees
         this.vel = vel;
+        this.ang_vel = ang_vel; // degress/sec
     }
 
     draw() {
         var loc = ctx.save();
         translate(this.pos[0], this.pos[1]);
+        rotate(this.ang);
         scale(this.sz, this.sz);
         draw_snowflake();
         ctx.restore(loc);
@@ -39,10 +42,18 @@ class Snowflake {
 function update() {
     var new_snowflakes = [];
 
-    // update positions
+    // update speeds
+    for (const snowflake of snowflakes) {
+        const x_accel = random_range(-50, 50) / fps;
+        //const x_accel = random_range(-200, 200) / fps;
+        snowflake.vel[0] += x_accel;
+    }
+    
+    // update positions and angles
     for (const snowflake of snowflakes) {
         snowflake.pos[0] += snowflake.vel[0]/fps;
         snowflake.pos[1] += snowflake.vel[1]/fps;
+        snowflake.ang += snowflake.ang_vel/fps;
     }
 
     // retain snowflakes that are still visible (remove old snowflakes)
@@ -54,11 +65,13 @@ function update() {
 
     // create new snowflakes
     if (Math.random() <= snowflakes_per_second/fps) {
-        var sz = random_range(0.05, 0.2);
+        var sz = random_range(0.07, 0.15);
         var x = random_range(-canvas_width/2, canvas_width/2);
         var vel_y = -random_range(20, 100);
+        var ang = random_range(0, 90);
+        var ang_vel = random_range(8, 24);
         new_snowflakes.push(new Snowflake(
-            sz, [x, snowflake_start], [0, vel_y]
+            sz, [x, snowflake_start], [0, vel_y], ang, ang_vel,
         ));
     }
     
@@ -135,7 +148,7 @@ function draw_snowflake() {
         // Arm 
         var loc = ctx.save();
         translate(60, 0);
-        scale(120, width);
+        scale(120, width-6);
         square('white');
         ctx.restore(loc);
 
