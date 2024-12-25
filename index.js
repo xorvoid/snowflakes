@@ -1,17 +1,15 @@
 var canvas_width = 700;
 var canvas_height = 700;
-var snowflake_start = canvas_height/2+100;
-var snowflake_end = -canvas_height/2-100;
+var snowflake_start = canvas_height/2+10;
+var snowflake_end = -canvas_height/2-10;
+var snowflakes_per_second = 3.0;
 var snowflakes = [];
 var ctx = null;
 const fps = 60;
 
 function run() {
     ctx = document.getElementById('scene').getContext('2d');
-
-    snowflakes = [
-        new Snowflake(0.5, [20, snowflake_start], [0, -100])
-    ];
+    snowflakes = [];
     render_frame();
 }
 
@@ -40,13 +38,31 @@ class Snowflake {
 
 function update() {
     var new_snowflakes = [];
+
+    // update positions
     for (const snowflake of snowflakes) {
         snowflake.pos[0] += snowflake.vel[0]/fps;
         snowflake.pos[1] += snowflake.vel[1]/fps;
+    }
+
+    // retain snowflakes that are still visible (remove old snowflakes)
+    for (const snowflake of snowflakes) {
         if (snowflake.pos[1] > snowflake_end) {
             new_snowflakes.push(snowflake);
         }
     }
+
+    // create new snowflakes
+    if (Math.random() <= snowflakes_per_second/fps) {
+        var sz = random_range(0.05, 0.2);
+        var x = random_range(-canvas_width/2, canvas_width/2);
+        var vel_y = -random_range(20, 100);
+        new_snowflakes.push(new Snowflake(
+            sz, [x, snowflake_start], [0, vel_y]
+        ));
+    }
+    
+    
     snowflakes = new_snowflakes;
 }
 
@@ -89,7 +105,7 @@ function draw_scene() {
     var loc_start = ctx.save();
     translate(canvas_width/2, canvas_height/2)
     scale(1, -1);
-    draw_axes();
+    //draw_axes();
 
     // var n = 40;
     // for(var i = 0; i < n; i++) {
