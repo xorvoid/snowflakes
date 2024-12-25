@@ -1,71 +1,193 @@
-var z_camera = -10;
-var anim_idx = 0;
-var anim_n = 6;
+var canvas_width = 700;
+var canvas_height = 700;
+var snowflake_start = canvas_height/2+100;
+var snowflake_end = -canvas_height/2-100;
+var snowflakes = [];
 var ctx = null;
+const fps = 60;
 
 function run() {
     ctx = document.getElementById('scene').getContext('2d');
+
+    snowflakes = [
+        new Snowflake(0.5, [20, snowflake_start], [0, -100])
+    ];
     render_frame();
 }
 
 function render_frame() {
-    // 24 fps
-    window.setTimeout(render_frame, 1000 / 24);
-    ctx.clearRect(0, 0, 500, 500);
-
-    draw_spiral(0, anim_idx, "#ff0000");
-    draw_spiral(Math.PI, anim_idx, "#00ffcc");
-
-    anim_idx += 1;
-    if (anim_idx >= anim_n) anim_idx = 0;
+    window.setTimeout(render_frame, 1000 / fps);
+    ctx.clearRect(0, 0, canvas_width, canvas_height);
+    update();
+    draw_scene();
 }
 
-function draw_spiral(theta_offset, anim_idx, color) {
-    var r_rate = 0.06
-    var y_rate = 1/(2*Math.PI);
-    var theta_step = 0.05;
-    var theta_anim = theta_step * anim_idx / anim_n;
-    for (var t = 0; t < 3*6.28; t += theta_step) {
-        var start = compute_point(t-theta_anim, theta_offset, r_rate, y_rate); 
-        var end = compute_point(t-theta_anim+theta_step/2, theta_offset, r_rate, y_rate);
-        var line = {
-            start: start,
-            end: end,
-            color: color,
-        };
+class Snowflake {
+    constructor(sz, pos, vel) {
+        this.sz = sz;
+        this.pos = pos;
+        this.vel = vel;
+    }
 
-        draw_line(line);
+    draw() {
+        var loc = ctx.save();
+        translate(this.pos[0], this.pos[1]);
+        scale(this.sz, this.sz);
+        draw_snowflake();
+        ctx.restore(loc);
     }
 }
 
-function compute_point(theta, theta_offset, r_rate, y_rate) {
-    var radius = r_rate * theta
-    var x = radius * Math.cos(theta+theta_offset);
-    var z = -radius * Math.sin(theta+theta_offset);
-    var y = y_rate * theta
-
-    var alpha_min = 0.25;
-    var alpha_max = 1.0;
-    var brightness = (Math.cos(theta+theta_offset - Math.PI/2) + 1)/2;
-    var alpha = brightness * (alpha_max - alpha_min) + alpha_min;
-    
-    // project into 2d
-    var x_2d = x / (z - z_camera);
-    var y_2d = y / (z - z_camera);
-    // HACKS: FIGURE OUT CAMERA MATH...
-    return {
-        x: 200 + 800*x_2d,
-        y: 200 + 800*y_2d,
-        alpha: alpha,
+function update() {
+    var new_snowflakes = [];
+    for (const snowflake of snowflakes) {
+        snowflake.pos[0] += snowflake.vel[0]/fps;
+        snowflake.pos[1] += snowflake.vel[1]/fps;
+        if (snowflake.pos[1] > snowflake_end) {
+            new_snowflakes.push(snowflake);
+        }
     }
+    snowflakes = new_snowflakes;
 }
 
-function draw_line(line) {
-    ctx.strokeStyle = line.color;
-    ctx.globalAlpha = line.start.alpha;
-    ctx.beginPath();
-    ctx.moveTo(line.start.x, line.start.y);
-    ctx.lineTo(line.end.x, line.end.y);
-    ctx.closePath();
-    ctx.stroke();
+function rotate(deg) {
+    var t = deg*Math.PI/180
+    ctx.rotate(t)
+}
+
+function translate(x, y) {
+    ctx.translate(x, y);
+}
+
+function scale(x, y) {
+    ctx.scale(x, y)
+}
+
+function square(color) {
+    ctx.fillStyle = color;
+    ctx.fillRect(-0.5, -0.5, 1, 1);
+}
+
+function draw_axes() {
+    var loc = ctx.save();
+    scale(canvas_width, 1)
+    square('red')
+    ctx.restore(loc)
+
+    var loc = ctx.save();
+    rotate(90)
+    scale(canvas_height, 1)
+    square('green')
+    ctx.restore(loc)
+}
+
+function random_range(a, b) {
+    return Math.random() * (b-a) + a;
+}
+
+function draw_scene() {
+    var loc_start = ctx.save();
+    translate(canvas_width/2, canvas_height/2)
+    scale(1, -1);
+    draw_axes();
+
+    // var n = 40;
+    // for(var i = 0; i < n; i++) {
+    //     var x = random_range(-canvas_width/2, canvas_width/2);
+    //     var y = random_range(-canvas_height/2, canvas_height/2);
+    //     var sz = random_range(0.5, 3);
+
+    //     // var loc = ctx.save();
+    //     // translate(x, y);
+    //     // scale(sz/10, sz/10);
+    //     // draw_snowflake();
+    //     // ctx.restore(loc);
+    //     var snowflake = new Snowflake(sz/10, [x, y], [0, 0]);
+    //     snowflake.draw();
+    // }
+    for (const snowflake of snowflakes) {
+        snowflake.draw();
+    }
+    ctx.restore(loc_start);
+}
+
+function draw_snowflake() {
+    var width = 12;
+    function draw_leaf() {
+        translate(5, 0);
+        
+        // Arm 
+        var loc = ctx.save();
+        translate(60, 0);
+        scale(120, width);
+        square('white');
+        ctx.restore(loc);
+
+        // First leaf
+        var loc = ctx.save();
+        translate(20, 0);
+        rotate(40);
+        translate(35, 0)
+        scale(70, width-2);
+        square('white');
+        ctx.restore(loc);
+
+        var loc = ctx.save();
+        translate(20, 0);
+        rotate(-40);
+        translate(35, 0)
+        scale(70, width-2);
+        square('white');
+        ctx.restore(loc);
+
+        // Second leaf
+        var loc = ctx.save();
+        translate(65, 0);
+        rotate(40);
+        translate(20, 0);
+        scale(40, width-2);
+        square('white');
+        ctx.restore(loc);
+        var loc = ctx.save();
+        translate(65, 0);
+        rotate(-40);
+        translate(20, 0);
+        scale(40, width-2);
+        square('white');
+        ctx.restore(loc);
+
+        // End
+        var loc = ctx.save();
+        translate(120, 0);
+        rotate(45);
+        scale(20, 20);
+        square('white');
+        ctx.restore(loc);
+    }
+
+    var loc = ctx.save();
+    draw_leaf();
+    ctx.restore(loc);
+
+    var loc = ctx.save();
+    rotate(90);
+    draw_leaf();
+    ctx.restore(loc);
+
+    var loc = ctx.save();
+    rotate(180);
+    draw_leaf();
+    ctx.restore(loc);
+
+    var loc = ctx.save();
+    rotate(270);
+    draw_leaf();
+    ctx.restore(loc);
+
+    var loc = ctx.save();
+    scale(28, 28);
+    square('white');
+    ctx.restore(loc);
+
+    //ctx.restore(loc_top);
 }
