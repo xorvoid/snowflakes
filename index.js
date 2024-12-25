@@ -10,10 +10,11 @@ var snowflakes_per_second = 3.0;
 var snowflakes = [];
 var snow_level = 10;
 var snow_level_inc = 1.5;
+var snow_level_limit = 150;
 var ctx = null;
 const fps = 60;
 
-const DEBUG = true;
+const DEBUG = 0;
 var DEBUG_COLORS = ['green', 'red', 'orange', 'cyan', 'yellow', 'blue'];
 
 function run() {
@@ -75,6 +76,9 @@ function update() {
             new_snowflakes.push(snowflake);
         } else {
             snow_level += snow_level_inc;
+            if (snow_level > snow_level_limit) {
+                snow_level = snow_level_limit;
+            }
         }
     }
 
@@ -169,6 +173,8 @@ function draw_scene() {
         draw_axes();
     }
 
+    draw_ground();
+
     draw_context(() => {
         translate(-canvas_width/4, -canvas_height/2);
         draw_snowman();
@@ -177,7 +183,6 @@ function draw_scene() {
         translate(canvas_width*0.35, -canvas_height/2);
         draw_tree();
     });
-    draw_ground();
     
     for (const snowflake of snowflakes) {
         snowflake.draw();
