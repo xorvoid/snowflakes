@@ -3,10 +3,13 @@ var canvas_height = 700;
 var snowflake_start = canvas_height/2+10;
 var snowflake_end = -canvas_height/2-10;
 var background_color = '#06224a';
-var snowflake_color = ' #7da2ba ';
+//var snowflake_color = ' #7da2ba ';
+//var snowflake_color = ' #ebf1f8 ';
+var snowflake_color = ' #d9e5f5 ';
 var snowflakes_per_second = 3.0;
 var snowflakes = [];
-var snow_level_y = 0;
+var snow_level = 10;
+var snow_level_inc = 1.5;
 var ctx = null;
 const fps = 60;
 
@@ -47,6 +50,8 @@ class Snowflake {
 function update() {
     var new_snowflakes = [];
 
+    console.log(snowflakes.length);
+    
     // update speeds
     for (const snowflake of snowflakes) {
         const x_accel = random_range(-50, 50) / fps;
@@ -65,6 +70,8 @@ function update() {
     for (const snowflake of snowflakes) {
         if (snowflake.pos[1] > snowflake_end) {
             new_snowflakes.push(snowflake);
+        } else {
+            snow_level += snow_level_inc;
         }
     }
 
@@ -82,6 +89,12 @@ function update() {
     
     
     snowflakes = new_snowflakes;
+}
+
+function draw_context(func) {
+    let loc = ctx.save();
+    func();
+    ctx.restore(loc);
 }
 
 function rotate(deg) {
@@ -102,6 +115,23 @@ function square(color) {
     ctx.fillRect(-0.5, -0.5, 1, 1);
 }
 
+function circle(color, radius=1.0) {
+    ctx.beginPath();
+    ctx.fillStyle = color;
+    ctx.strokeStyle = color;
+    ctx.arc(0, 0, radius, 0, 2*Math.PI, false);
+    ctx.fill();
+    ctx.stroke();
+}
+
+function arc(color, radius=1.0, perc=1.0) {
+    ctx.beginPath();
+    ctx.strokeStyle = color;
+    ctx.lineWidth = 1.8;
+    ctx.arc(0, 0, radius, 0, perc*2*Math.PI, false);
+    ctx.stroke();
+}
+
 function draw_axes() {
     var loc = ctx.save();
     scale(canvas_width, 1)
@@ -115,6 +145,10 @@ function draw_axes() {
     ctx.restore(loc)
 }
 
+function deg_to_rad(deg) {
+    return deg / 180.0 * Math.PI;
+}
+
 function random_range(a, b) {
     return Math.random() * (b-a) + a;
 }
@@ -123,11 +157,117 @@ function draw_scene() {
     var loc_start = ctx.save();
     translate(canvas_width/2, canvas_height/2)
     scale(1, -1);
-    //draw_axes();
+    draw_axes();
+    draw_ground();
+    draw_snowman();
     for (const snowflake of snowflakes) {
         snowflake.draw();
     }
     ctx.restore(loc_start);
+}
+
+function draw_ground() {
+    var loc = ctx.save();
+    translate(0, snow_level/2 - canvas_height/2);
+    scale(canvas_width, snow_level);
+    square(snowflake_color);
+    ctx.restore();
+}
+
+function draw_snowman() {
+
+    var size = 50;
+    var radius_top = 0.45*size;
+    var radius_mid = 0.65*size;
+    var radius_bottom = 1.0*size;
+    
+    draw_context(() => {
+        translate(0, radius_bottom);
+        circle('white', radius_bottom);
+        translate(0, radius_mid+radius_bottom-12);
+        circle('white', radius_mid);
+        translate(0, radius_top+radius_mid-4);
+        circle('white', radius_top);
+    });
+
+    draw_context(() => {
+        translate(0, 2.4*size);
+        circle('black', 4.0);
+    });
+
+    draw_context(() => {
+        translate(0, 1.9*size);
+        circle('black', 4.0);
+    });
+
+    draw_context(() => {
+        translate(0, 1.4*size);
+        circle('black', 4.0);
+    });
+
+    var arm_angle = 35;
+    function draw_arm() {
+        draw_context(() => {
+            translate(50, 0);
+            rotate(45);
+            translate(7.5, 0);
+            scale(15, 5);
+            square('#6E260E');
+        });
+        draw_context(() => {
+            translate(50, 0);
+            rotate(-45);
+            translate(7.5, 0);
+            scale(15, 5);
+            square('#6E260E');
+        });
+        draw_context(() => {
+            translate(35, 0);
+            scale(70, 5);
+            square('#6E260E');
+        });
+    }
+
+    // left arm
+    draw_context(() => {
+        translate(-0.6*size, 2.4*size);
+        rotate(180-arm_angle);
+        draw_arm();
+    });
+
+    // right arm
+    draw_context(() => {
+        translate(0.6*size, 2.4*size);
+        rotate(arm_angle);
+        draw_arm();
+    });
+
+    function draw_face() {
+        // Smile
+        draw_context(() => {
+            translate(0, 3.45*size);
+            scale(1.0, 1);
+            var a = 45;
+            ctx.beginPath();
+            ctx.strokeStyle = 'black';
+            ctx.lineWidth = 1.8;
+            ctx.arc(0, 0, 15.0, deg_to_rad(180 + a), deg_to_rad(360 - a), false);
+            //ctx.arc(0, 0, 10.0, 0, 2*Math.PI, false);
+            ctx.stroke();
+        });
+
+        // Eyes
+        draw_context(() => {
+            translate(-0.15*size, 3.55*size);
+            circle('black', 2.0);
+        });
+        draw_context(() => {
+            translate(0.15*size, 3.55*size);
+            circle('black', 2.0);
+        });
+    }
+
+    draw_face();
 }
 
 function draw_snowflake() {
